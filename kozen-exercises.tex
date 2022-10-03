@@ -1,0 +1,355 @@
+% Document setup
+\documentclass[article, a4paper, 11pt, oneside]{memoir}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[UKenglish]{babel}
+
+% Document info
+\newcommand\doctitle{Kozen, \emph{Automata and Computability}}
+\newcommand\docauthor{Danny Nygård Hansen}
+
+% Formatting and layout
+\usepackage[autostyle]{csquotes}
+\usepackage[final]{microtype}
+\usepackage{xcolor}
+\frenchspacing
+\usepackage{latex-sty/articlepagestyle}
+\usepackage{latex-sty/articlesectionstyle}
+% \usepackage{latex-sty/amalgsymbol}
+
+% Fonts
+\usepackage[largesmallcaps]{kpfonts}
+\DeclareSymbolFontAlphabet{\mathrm}{operators} % https://tex.stackexchange.com/questions/40874/kpfonts-siunitx-and-math-alphabets
+\linespread{1.06}
+\let\mathfrak\undefined
+\usepackage{eufrak}
+\usepackage{inconsolata}
+% \usepackage{amssymb}
+
+% Hyperlinks
+\usepackage{hyperref}
+\definecolor{linkcolor}{HTML}{4f4fa3}
+\hypersetup{%
+	pdftitle=\doctitle,
+	pdfauthor=\docauthor,
+	colorlinks,
+	linkcolor=linkcolor,
+	citecolor=linkcolor,
+	urlcolor=linkcolor,
+	bookmarksnumbered=true
+}
+
+% Equation numbering
+\numberwithin{equation}{chapter}
+
+% Footnotes
+\footmarkstyle{\textsuperscript{#1}\hspace{0.25em}}
+
+% Mathematics
+\usepackage{latex-sty/basicmathcommands}
+\usepackage{latex-sty/framedtheorems}
+\usepackage{tikz-cd}
+\tikzcdset{arrow style=math font} % https://tex.stackexchange.com/questions/300352/equalities-look-broken-with-tikz-cd-and-math-font
+\usetikzlibrary{babel}
+\usepackage{bm}
+
+% Lists
+\usepackage{enumitem}
+\setenumerate[0]{label=\normalfont(\alph*)}
+\setlist{  
+  listparindent=\parindent,
+  parsep=0pt,
+}
+
+% Bibliography
+\usepackage[backend=biber, style=authoryear, maxcitenames=2, useprefix]{biblatex}
+\addbibresource{references.bib}
+
+% Title
+\title{\doctitle}
+\author{\docauthor}
+
+%% Framed exercise environment
+
+\mdfdefinestyle{swannexercise}{%
+    skipabove=0.5em plus 0.4em minus 0.2em,
+	skipbelow=0.5em plus 0.4em minus 0.2em,
+	leftmargin=-5pt,
+	rightmargin=-5pt,
+	innerleftmargin=5pt,
+	innerrightmargin=5pt,
+	innertopmargin=5pt,
+	innerbottommargin=4pt,
+	linewidth=0pt,
+	splittopskip=1.2em minus 0.2em,
+	splitbottomskip=0.5em plus 0.2em minus 0.1em,
+	backgroundcolor=backgroundcolor,
+	frametitlebackgroundcolor=titlecolor,
+	frametitlefont={\scshape},
+    theoremseparator={},
+    % theoremspace={},
+	frametitleaboveskip=3pt,
+	frametitlebelowskip=2pt
+}
+
+\mdtheorem[style=swannexercise]{exerciseframed}{Exercise}
+
+\let\oldexerciseframed\exerciseframed
+\renewcommand{\exerciseframed}{%
+    \crefalias{theorem}{exerciseframed}%
+    \oldexerciseframed}
+
+\settocdepth{subsection}
+\renewenvironment{exerciseframed}[1][]{%
+    \refstepcounter{exerciseframed}%
+    \addcontentsline{toc}{subsection}{Exercise #1}%
+    \begin{exerciseframed*}[#1]%
+    \label{ex:#1}%
+}{%
+    \end{exerciseframed*}%
+}
+
+\newcommand{\exref}[1]{%
+    \hyperref[ex:#1]{Exercise~\mylabel}%
+}
+
+\theoremstyle{nonumberplain}
+\theoremsymbol{\ensuremath{\square}}
+\newtheorem{solution}{Solution}
+
+\let\oldsolution\solution
+\renewcommand{\solution}{%
+  \crefalias{theorem}{solution}%
+  \oldsolution}
+
+\newcommand{\solutionlabelfont}[1]{{\normalfont\color{linkcolor}#1}}
+\newlist{solutionsec}{enumerate}{1}
+\setlist[solutionsec]{leftmargin=0pt, parsep=0pt, listparindent=\parindent, font=\solutionlabelfont, label=(\alph*), labelsep=0pt, labelwidth=20pt, itemindent=20pt, align=left, itemsep=10pt}
+
+\newenvironment{displaytheorem}{%
+	\begin{displayquote}\itshape%
+}{%
+	\end{displayquote}%
+}
+
+
+% Redefine environments to support lack of section numbering
+\theoremstyle{myexample}
+\renewtheorem{remark}{Remark}
+
+\theoremstyle{myexamplebreak}
+\renewtheorem{remarkbreak}{Remark}
+
+
+\begin{document}
+
+\maketitle
+
+\setcounter{secnumdepth}{-2}
+\chapter{Miscellaneous Exercises}
+
+\section{Finite Automata and Regular Sets}
+
+\newcommand{\calL}{\mathcal{L}}
+
+\begin{remarkbreak}[The Pumping Lemma]
+    We prove the pumping lemma:
+    %
+    \begin{displaytheorem}
+        Let $A$ be a regular set over an alphabet $\Sigma$. Then there exists a $k \in \naturals$ such that for any $x,y,z \in \Sigma^*$ with $xyz \in A$ and $\card{y} \geq k$, there exist $u,v,w \in \Sigma^*$ such that $y = uvw$, $v \neq \epsilon$, and $xuv^n wz \in A$ for all $n \in \naturals$.
+    \end{displaytheorem}
+    %
+    Let $M = (Q, \Sigma, \delta, s, F)$ be a DNF accepting $A$, let $k = \card{Q}$, and let $x,y,z$ be given as above. Write $y = y_1 \cdots y_k$ with $y_i \in \Sigma$. Let $p_0 = \hat\delta(s,x)$ and define $p_i = \delta(p_{i-1},y_i)$ for $i = 1, \ldots, k$. Then since $k+1 > \card{Q}$, there exist $i < j$ such that $p_i = p_j$. Let $u = y_1 \cdots y_i$, $v = y_{i+1} \cdots y_j$ and $w = y_{j+1} \cdots y_k$, and notice that $v \neq \epsilon$ since $i < j$. Furthermore, clearly $\hat\delta(p_i,v) = p_j = p_i$, so by induction we have
+    %
+    \begin{equation*}
+        \hat\delta(p_i, v^n)
+            = \hat\delta \bigl( \hat\delta(p_i, v^{n-1}), v \bigr)
+            = \hat\delta(p_i, v)
+            = p_i.
+    \end{equation*}
+    %
+    Since $\hat\delta(s,xu) = p_i$, it follows that
+    %
+    \begin{equation*}
+        \hat\delta(s,xuv^n wz)
+            = \hat\delta \bigl( \hat\delta(p_i, v^n), wz \bigr)
+            = \hat\delta(p_i, vwz)
+            = \hat\delta(s, xyz)
+            \in F.
+    \end{equation*}
+\end{remarkbreak}
+
+\begin{exerciseframed}[7]
+    If $\Sigma$ is an alphabet, consider the triple $(\powerset{\Sigma^*}, \union, \cdot)$, where $\cdot$ denotes concatenation. Since contatenation distributes over unions, this is a semiring\footnotemark{} with addition $\union$ and multiplication $\cdot$. In particular, the set of matrices with entries in $\powerset{\Sigma^*}$ inherits an addition and multiplication, making it into a semiring itself.
+
+    Given a DFA $M = (Q, \Sigma, \delta, s, F)$ with $n$ states, define its \emph{transition matrix} $G$ as the $n \times n$ matrix given by
+    %
+    \begin{equation*}
+        G_{uv}
+            = \set{a \in \Sigma}{\delta(u,a) = v}
+    \end{equation*}
+    %
+    for $u,v \in Q$.
+    %
+    \begin{enumerate}
+        \item Prove that
+        %
+        \begin{equation*}
+            (G^n)_{uv}
+                = \set{x \in \Sigma^*}{ \text{$\card{x} = n$, and $\hat\delta(u,x) = v$}}.
+        \end{equation*}
+
+        \item Define the Kleene closure $A^*$ of the matrix $A$ to be the componentwise union of all the powers of $A$:
+        %
+        \begin{equation*}
+            (A^*)_{uv}
+                = \bigunion_{n \in \naturals} (A^n)_{uv}.
+        \end{equation*}
+        %
+        Prove that
+        %
+        \begin{equation*}
+            \calL(M)
+                = \bigunion_{t \in F} (G^*)_{st}.
+        \end{equation*}
+    \end{enumerate}
+\end{exerciseframed}
+\footnotetext{Recall that, in a semiring, we require that multiplication by the additive identity annihilate any element in the semiring. In a ring this follows from additive cancellation. The set $\powerset{\Sigma^*}$ is in fact a Kleene algebra, but we do not need this fact below.}
+
+\begin{solution}
+\begin{solutionsec}
+    \item For $n = 0$ we have $x = \epsilon$, so $\hat\delta(u,\epsilon) = v$ if and only if $u = v$, and so the right-hand side above equals $I_{uv}$.
+    
+    Assume that the claim holds for some $n \in \naturals$. Then
+    %
+    \begin{equation*}
+        (G^{n+1})_{uv}
+            = (G^n G)_{uv}
+            = \bigunion_{w \in Q} (G^n)_{uw} G_{wv}.
+    \end{equation*}
+    %
+    Now notice that, by induction,
+    %
+    \begin{align*}
+        (G^n)_{uw} G_{wv}
+            &= \set{x \in \Sigma^*}{ \text{$\card{x} = n$, and $\hat\delta(u,x) = w$}} G_{wv} \\
+            &= \set{xa \in \Sigma^*}{ \text{$\card{x} = n$, $\hat\delta(u,x) = w$, and $\delta(w,a) = v$}} \\
+            &= \set{xa \in \Sigma^*}{ \text{$\card{x} = n$, $\hat\delta(u,x) = w$, and $\delta(\hat\delta(u,x),a) = v$}} \\
+            &= \set{xa \in \Sigma^*}{ \text{$\card{x} = n$, $\hat\delta(u,x) = w$, and $\hat\delta(u,xa) = v$}}.
+    \end{align*}
+    %
+    Since the condition $\hat\delta(u,x) = w$ is always satisfied for some $w \in Q$, it follows that
+    %
+    \begin{align*}
+        \bigunion_{w \in Q} (G^n)_{uw} G_{wv}
+            &= \bigunion_{w \in Q} \set{xa \in \Sigma^*}{ \text{$\card{x} = n$, $\hat\delta(u,x) = w$, and $\hat\delta(u,xa) = v$}} \\
+            &= \set{xa \in \Sigma^*}{ \text{$\card{xa} = n+1$, and $\hat\delta(u,xa) = v$}} \\
+            &= (G^{n+1})_{uv}
+    \end{align*}
+    %
+    as desired.
+
+    \item A string $x \in \Sigma^*$ lies in $\calL(M)$ if and only if there is a $t \in F$ such that $\hat\delta(s,x) = t$, iff $x \in (G^{\card{x}})_{st}$. The claim follows easily.
+\end{solutionsec}
+\end{solution}
+
+
+\newcommand{\Bepsilon}{\bm{\epsilon}}
+
+\begin{exerciseframed}[10]
+    Recall from Lecture 10 that an \emph{$\epsilon$-NFA} is a structure
+    %
+    \begin{equation*}
+        M = (Q, \Sigma, \Bepsilon, \Delta, S, F)
+    \end{equation*}
+    %
+    such that $\Bepsilon$ is a special symbol not in $\Sigma$ and
+    %
+    \begin{equation*}
+        M_{\Bepsilon} = (Q, \Sigma \union \{\Bepsilon\}, \Delta, S, F)
+    \end{equation*}
+    %
+    is an ordinary NFA.
+    
+    Define the \emph{$\epsilon$-closure} $C_{\Bepsilon}(A)$ of a set $A \subseteq Q$ to be the set of all states reachable from some state in $A$ under a sequence of zero or more $\epsilon$-transitions:
+    %
+    \begin{equation*}
+        C_{\Bepsilon}(A)
+            = \bigunion_{x \in \{\Bepsilon\}^*} \hat\Delta(A,x)
+            = \bigunion_{k \in \naturals} \hat\Delta(A, \Bepsilon^k).
+    \end{equation*}
+
+    \begin{enumerate}
+        \item Using $\epsilon$-closure, define formally acceptance for $\epsilon$-NFAs in a way that captures the intuitive description given in Lecture 6.
+        
+        \item Prove that under your definition, $\epsilon$-NFAs accept only regular sets.
+
+        \item Prove that the two definitions of acceptance -- the one given in part (a) involving $\epsilon$-closure and the one given in Lecture 10 involving homomorphisms -- are equivalent.
+    \end{enumerate}
+\end{exerciseframed}
+
+\begin{solution}
+\begin{solutionsec}
+    \item Notice that $\epsilon$-closure is a map $C_{\Bepsilon} \colon \powerset{Q} \to \powerset{Q}$, and that since $M_{\Bepsilon}$ is an NFA, $\Delta$ is a map $Q \prod (\Sigma \union \{\Bepsilon\}) \to \powerset{Q}$. We define a modified transition function
+    %
+    \begin{equation*}
+        \Delta_{\Bepsilon} \colon Q \prod (\Sigma \union \{\Bepsilon\}) \to \powerset{Q}
+    \end{equation*}
+    %
+    by $\Delta_{\Bepsilon} = C_{\Bepsilon} \circ \Delta$. We then say that $M$ \emph{accepts} $x \in \Sigma^*$ if the NFA
+    %
+    \begin{equation*}
+        (Q, \Sigma \union \{\Bepsilon\}, \Delta_{\Bepsilon}, C_{\Bepsilon}(S), F)
+    \end{equation*}
+    %
+    accepts $x$. Denoting the corresponding extended transition function by $\hat\Delta_{\Bepsilon}$, this means that $M$ accepts $x$ if $\hat\Delta_{\Bepsilon}(C_{\Bepsilon}(S),x) \intersect F \neq \emptyset$.
+
+    \item This is obvious from (a), since NFAs only accept regular sets by Theorem~6.4.
+
+    \item First define
+    %
+    \begin{align*}
+        \calL(M)
+            &= h(\calL(M_{\Bepsilon})) \\
+        \calL'(M)
+            &= \set{x \in \Sigma^*}{\hat\Delta_{\Bepsilon}(C_{\Bepsilon}(S),x) \intersect F \neq \emptyset},
+    \end{align*}
+    %
+    where $h \colon (\Sigma \union \{\Bepsilon\})^* \to \Sigma^*$ is given by $h(\Bepsilon) = \epsilon$ and $h(a) = a$ for $a \in \Sigma$. We prove the following claim:
+    %
+    \begin{displaytheorem}
+        For every $A \subseteq Q$ and $x \in \Sigma^*$ we have
+        %
+        \begin{equation*}
+            \bigunion_{y \in h\preim(x)} \hat\Delta(A,y)
+                = \hat\Delta_{\Bepsilon}(C_{\Bepsilon}(A),x).
+        \end{equation*}
+    \end{displaytheorem}
+    %
+    The equality $\calL(M) = \calL'(M)$ follows easily by letting $A = S$. We prove the claim by induction on the length of $x$. If $x = \epsilon$, then
+    %
+    \begin{equation*}
+        \hat\Delta_{\Bepsilon}(C_{\Bepsilon}(A),\epsilon)
+            = C_{\Bepsilon}(A)
+            = \bigunion_{k \in \naturals} \hat\Delta(A, \Bepsilon^k)
+            = \bigunion_{y \in h\preim(\Bepsilon)} \hat\Delta(A,y),
+    \end{equation*}
+    %
+    where the last equality follows since $h$ sends precisely strings on the form $\Bepsilon^k$ to $\epsilon$. Now assume that the claim holds for some string $x \in \Sigma^*$, and let $a \in \Sigma$. Then
+    %
+    \begin{align*}
+        \hat\Delta_{\Bepsilon}(C_{\Bepsilon}(A), xa)
+            &= \hat\Delta_{\Bepsilon} \bigl( \hat\Delta_{\Bepsilon}(C_{\Bepsilon}(A), x), a \bigr) \\
+            &= \hat\Delta_{\Bepsilon} \bigl( C_{\Bepsilon} \circ \hat\Delta_{\Bepsilon}(C_{\Bepsilon}(A), x), a \bigr) \\
+            &= \hat\Delta_{\Bepsilon} \biggl( C_{\Bepsilon} \Bigl( \bigunion_{y \in h\preim(x)} \hat\Delta(A,y) \Bigr), a \biggr) \\
+            &= \bigunion_{b \in h\preim(a)} \hat\Delta \biggl( \bigunion_{y \in h\preim(x)} \hat\Delta(A,y), b \biggr) \\
+            &= \bigunion_{b \in h\preim(a)} \bigunion_{y \in h\preim(x)} \hat\Delta \bigl( \hat\Delta(A,y), b \bigr) \\
+            &= \bigunion_{b \in h\preim(a)} \bigunion_{y \in h\preim(x)} \hat\Delta(A,yb) \\
+            &= \bigunion_{z \in h\preim(xa)} \hat\Delta(A,z),
+    \end{align*}
+    %
+    proving the claim.
+\end{solutionsec}
+\end{solution}
+
+\end{document}
